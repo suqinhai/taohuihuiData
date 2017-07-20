@@ -6,6 +6,10 @@ const posterSchema = new mongoose.Schema({
 		type: String,
 		required: true
 	},
+	'img':{
+		type: String,
+		required: true
+	},
 	'sort':{
 		type: Number,
 		required: true

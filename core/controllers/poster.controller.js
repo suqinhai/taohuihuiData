@@ -24,7 +24,7 @@ exports.get = async function(req, res, next) {
     posterModel.find(data)
         .skip((page - 1) * pageSize)
         .limit(pageSize)
-        .select('title url sort alt createTime updateTime')
+        .select('title url img sort alt createTime updateTime')
         .lean()
         .exec(function(err, data) {
             err ? res.send(err) : '';
@@ -54,6 +54,18 @@ exports.add = function(req, res, next) {
                 errorMessage: 'url 不能为空'
             }
         },
+        'img': {
+            notEmpty: {
+                options: [true],
+                errorMessage: 'img 不能为空'
+            }
+        },
+        'title': {
+            notEmpty: {
+                options: [true],
+                errorMessage: 'title 不能为空'
+            }
+        },
         'sort': {
             notEmpty: {
                 options: [true],
@@ -74,11 +86,14 @@ exports.add = function(req, res, next) {
     var data = {
         'url': param.url,
         'sort': parseInt(param.sort),
+        'img': param.img,
         'title': param.title,
         'alt': param.alt,
         'createTime': util.dataFormat(new Date()),
         'updateTime': util.dataFormat(new Date()),
     };
+
+   
 
     posterModel.create(data, function(err, results) {
         err ? res.send(err) : '';
@@ -112,6 +127,18 @@ exports.modify = function(req, res, next) {
                 errorMessage: 'title 不能为空'
             }
         },
+        'img': {
+            notEmpty: {
+                options: [true],
+                errorMessage: 'img 不能为空'
+            }
+        },
+        'url': {
+            notEmpty: {
+                options: [true],
+                errorMessage: 'url 不能为空'
+            }
+        },
         'sort': {
             notEmpty: {
                 options: [true],
@@ -132,6 +159,7 @@ exports.modify = function(req, res, next) {
     var _id = param._id
     var data = {
         'url': param.url,
+        'img': param.img,
         'sort': parseInt(param.sort),
         'title': param.title,
         'alt': param.alt,
