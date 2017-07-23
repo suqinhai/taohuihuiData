@@ -58,7 +58,7 @@ casper.then(function() {
         var loginCode = this.evaluate(function() {
             var code = document.getElementById('J_QRCodeImg').getElementsByTagName('img')[0].getAttribute('src')
             __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/public/sendEmail', 'post', {
-                'text': '男装淘宝联盟登录二维码',
+                'text': '运动户外淘宝联盟登录二维码',
                 'url': 'http:' + code,
                 'title': '淘宝联盟登录二维码',
                 'toEmail': '467456744@qq.com'
@@ -79,7 +79,7 @@ casper.then(function() {
         var urls = [];
 
         for (var i = 1; i <= 99; i++) {
-            urls.push('http://pub.alimama.com/promo/search/index.htm?q=男装&_t='+ new Date().getTime() +'&toPage=' + i + '&perPageSize=40&dpyhq=1')
+            urls.push('http://pub.alimama.com/promo/search/index.htm?q=运动户外&_t='+ new Date().getTime() +'&toPage=' + i + '&perPageSize=40&dpyhq=1')
         }
 
         //打开多少个页面

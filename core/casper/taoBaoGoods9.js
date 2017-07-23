@@ -58,7 +58,7 @@ casper.then(function() {
         var loginCode = this.evaluate(function() {
             var code = document.getElementById('J_QRCodeImg').getElementsByTagName('img')[0].getAttribute('src')
             __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/public/sendEmail', 'post', {
-                'text': '男装淘宝联盟登录二维码',
+                'text': '家居用品淘宝联盟登录二维码',
                 'url': 'http:' + code,
                 'title': '淘宝联盟登录二维码',
                 'toEmail': '467456744@qq.com'
@@ -79,7 +79,7 @@ casper.then(function() {
         var urls = [];
 
         for (var i = 1; i <= 99; i++) {
-            urls.push('http://pub.alimama.com/promo/search/index.htm?q=男装&_t='+ new Date().getTime() +'&toPage=' + i + '&perPageSize=40&dpyhq=1')
+            urls.push('http://pub.alimama.com/promo/search/index.htm?q=家居用品&_t='+ new Date().getTime() +'&toPage=' + i + '&perPageSize=40&dpyhq=1')
         }
 
         //打开多少个页面
@@ -217,49 +217,48 @@ function core(casper, num, callback2) {
                     return $('.dialog-ft button.btn-brand').length
                 })
 
-                _this.wait(500, function() {
-                    _this.waitForSelector('.clipboard-wrap', function() {
-                        //商品链接&领券链接
 
-                        var data = _this.evaluate(function() {
-                            var url = $('#clipboard-target-1').val();
-                            var couponUrl = $('#clipboard-target-2').val();
-                            var data = {
-                                'url': url.toString() || '', //商品链接
-                                'couponUrl': couponUrl.toString() || '', //领券链接
-                            }
-                            //点击淘口令
-                            $('.tab-nav li:eq(3)').trigger('click');
-                            return data
-                        })
+                _this.waitForSelector('.clipboard-wrap', function() {
+                    //商品链接&领券链接
 
-                        for (var d in data) {
-                            params[d] = data[d]
+                    var data = _this.evaluate(function() {
+                        var url = $('#clipboard-target-1').val();
+                        var couponUrl = $('#clipboard-target-2').val();
+                        var data = {
+                            'url': url.toString() || '', //商品链接
+                            'couponUrl': couponUrl.toString() || '', //领券链接
                         }
+                        //点击淘口令
+                        $('.tab-nav li:eq(3)').trigger('click');
+                        return data
+                    })
 
-                        _this.wait(5000, function() {
+                    for (var d in data) {
+                        params[d] = data[d]
+                    }
 
-                            _this.waitForSelector('.clipboard-wrap', function() {
-                                var data = _this.evaluate(function() {
-                                    var goodsCode = $('#clipboard-target-1').val();
-                                    var couponCode = $('#clipboard-target-2').val();
-                                    var data = {
-                                        'couponCode': couponCode.toString() || '', //领券口令
-                                        'goodsCode': goodsCode.toString() || '', //商品口令
-                                    }
-                                    return data
-                                });
+                    _this.wait(5000, function() {
 
-
-                                for (var d in data) {
-                                    params[d] = data[d]
+                        _this.waitForSelector('.clipboard-wrap', function() {
+                            var data = _this.evaluate(function() {
+                                var goodsCode = $('#clipboard-target-1').val();
+                                var couponCode = $('#clipboard-target-2').val();
+                                var data = {
+                                    'couponCode': couponCode.toString() || '', //领券口令
+                                    'goodsCode': goodsCode.toString() || '', //商品口令
                                 }
+                                return data
+                            });
 
-                                cb(null, params)
-                            })
 
+                            for (var d in data) {
+                                params[d] = data[d]
+                            }
 
+                            cb(null, params)
                         })
+
+
                     })
 
                 })
