@@ -1,5 +1,6 @@
 phantom.outputEncoding = "UTF-8";
 var count = 1;
+
 // 页面抓取数据
 
 // var data = {
@@ -31,11 +32,11 @@ var casper = require('casper').create({
     loadPlugins: false, // use these settings
   },
   logLevel: "info", // Only "info" level messages will be logged
-  verbose: false // log messages will be printed out to the console
+  verbose: false, // log messages will be printed out to the console
 });
 
-casper.options.waitTimeout = 1000000;
-casper.userAgent('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.98 Safari/537.36')
+casper.options.waitTimeout = 900000;
+// casper.userAgent('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.98 Safari/537.36')
 
 
 var params = {
@@ -55,10 +56,18 @@ casper.then(function() {
   this.waitForSelector('.qrcode-img img', function() {
     //获取登录二维码
     var loginCode = this.evaluate(function() {
-      return document.getElementById('J_QRCodeImg').getElementsByTagName('img')[0].getAttribute('src')
+      var code = document.getElementById('J_QRCodeImg').getElementsByTagName('img')[0].getAttribute('src')
+      __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/public/sendEmail', 'post', {
+            'text': '淘宝联盟登录二维码',
+            'url':'http:' + code,
+            'title': '淘宝联盟登录二维码',
+            'toEmail':'467456744@qq.com'
+          }, false);
+      return code
     })
 
-    this.echo(loginCode)
+    this.each(loginCode)
+
   });
 
 
@@ -69,15 +78,16 @@ casper.then(function() {
 
     var urls = [];
 
-    for (var i = 1; i <= 10; i++) {
-      urls.push('http://pub.alimama.com/promo/item/channel/index.htm?q=%E9%9B%B6%E9%A3%9F&channel=qqhd&_t=1497971178095&toPage=' + i + '&dpyhq=1')
+    for (var i = 1; i <= 99; i++) {
+      urls.push('http://pub.alimama.com/promo/item/channel/index.htm?q=%E7%94%B7%E8%A3%85&channel=qqhd&_t=1500730402928&toPage='+ i +'&perPageSize=40')
     }
 
     //打开多少个页面
     async.mapLimit(urls, 1, function(url, callback) {
+
       page(url, callback)
     }, function(err, result) {
-
+        casper.exit()
     });
 
 
@@ -87,10 +97,13 @@ casper.then(function() {
 
 // 要抓取的页面
 function page(url, callback) {
-
+  // casper.options.waitTimeout = 10000;
+  // casper.options.onWaitTimeout = function(){
+  //    page(url, callback)
+  // };
   casper.open(url);
   casper.then(function() {
-
+    console.log(url);
     this.waitForSelector('.box-btn-left', function() {
 
       //获取一页商品数
@@ -101,16 +114,16 @@ function page(url, callback) {
       var _this = this;
       var numArr = [];
 
-      for (var i = 0; i < 2; i++) {
+      for (var i = 0; i < size; i++) {
         numArr.push(i);
       }
 
       async.mapLimit(numArr, 1, function(num, callback2) {
+        console.log(num)
         core(_this, num, callback2)
       }, function(err, result) {
-
         _this.evaluate(function(result) {
-          return __utils__.sendAJAX('http://192.168.1.101:3000/goods/add', 'post', {
+         return __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/goods/add', 'post', {
             'data': JSON.stringify(result),
           }, false);
         }, result)
@@ -126,7 +139,7 @@ function page(url, callback) {
   })
 
   casper.then(function() {
-    this.clearMemoryCache(); // 清除了缓存。
+    
     callback()
   })
 }
@@ -138,9 +151,15 @@ function core(casper, num, callback2) {
   var params = {};
   var _this = casper;
   //点击页面立即推广
+  _this.options.waitTimeout = 10000;
+  _this.options.onWaitTimeout = function(){
+    console.log('超时:　' +　num)
+    _this.capture('alimama.png')
+    core(casper, num, callback2);
+  }
   async.series([
     function(cb) {
-      _this.wait(300, function() {
+      _this.wait(1000, function() {
         var data = _this.evaluate(function(num) {
           function getQueryString(key) {
             var reg = new RegExp("(^|&)" + key + "=([^&]*)(&|$)");
@@ -184,14 +203,17 @@ function core(casper, num, callback2) {
           params[d] = data[d]
         }
 
-        _this.waitForSelector('.dropdown-toggle', function() {
-          cb(null, params)
-        })
+         // _this.wait(500, function() {
+          _this.waitForSelector('.dropdown-toggle', function() {
+            cb(null, params)
+          })
+           // })
       })
     },
     function(cb) {
       //点击设置推广位确认键
-      _this.wait(300, function() {
+      _this.wait(1000, function() {
+
         _this.evaluate(function() {
           $('.dialog-ft button.btn-brand').eq(0).trigger('click');
           return $('.dialog-ft button.btn-brand').length
@@ -210,10 +232,14 @@ function core(casper, num, callback2) {
               }
               //点击淘口令
             $('.tab-nav li:eq(3)').trigger('click');
-            return data
+            return {
+              'data':data,
+              'len':$('.tab-nav li:eq(3)').size()
+            }
           })
-
-          for (var d in data) {
+          
+          console.log(data.len)
+          for (var d in data.data) {
             params[d] = data[d]
           }
 
@@ -244,7 +270,7 @@ function core(casper, num, callback2) {
       })
     }
   ], function(err, results) {
-
-    callback2(null, results)
+     console.log(  JSON.stringify(results))
+     callback2(null, results[0])
   })
 }
