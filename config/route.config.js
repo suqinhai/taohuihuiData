@@ -82,6 +82,9 @@ const routers = {
         'post': 'bottomMenu.del'
     },
 
+    '/goods/init2': {
+        'get': 'goods.init2'
+    },
     '/goods/init': {
         'get': 'goods.init'
     },
@@ -90,6 +93,9 @@ const routers = {
     },
     '/goods/add': {
         'post': 'goods.add'
+    },
+    '/goods/modify': {
+        'post': 'goods.modify'
     },
 
 

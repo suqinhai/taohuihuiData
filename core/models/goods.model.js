@@ -8,59 +8,87 @@ const mongoose = require('mongoose');
 const goodsSchema = new mongoose.Schema({
     picUrl: {
         type: String,
-        required: true
+        required: false
     },
     title: {
         type: String,
-        required: true
+        required: false
     },
     coupon: {
         type: String,
-        required: true
+        required: false
+    },
+    couponStartFee: {
+        type: String,
+        required: false
+    },
+    couponNumber: {
+        type: String,
+        required: false
     },
     commissionPercent: {
         type: String,
-        required: true
+        required: false
     },
     commission: {
         type: String,
-        required: true
+        required: false
     },
     shopTitle: {
         type: String,
-        required: true
+        required: false
     },
     sales: {
         type: String,
-        required: true
+        required: false
     },
-    remainDays: {
+    reservePrice: {
         type: String,
-        required: true
+        required: false
+    },
+    zkPrice: {
+        type: String,
+        required: false
+    },
+    couponEffectiveStartTime: {
+        type: String,
+        required: false
+    },
+    couponEffectiveEndTime: {
+        type: String,
+        required: false
     },
     url: {
         type: String,
-        required: true
+        required: false
     },
     couponUrl: {
         type: String,
-        required: true
+        required: false
     },
     couponCode: {
         type: String,
-        required: true
+        required: false
     },
     goodsCode: {
         type: String,
-        required: true
+        required: false
     },
     channel: {
         type: String,
-        required: true
+        required: false
     },
     category: {
         type: String,
-        required: true
+        required: false
+    },
+    mainPic: {
+        type: Array,
+        required: false
+    },
+    detailsPic: {
+        type: Array,
+        required: false
     },
     createTime:{
         type: String,
