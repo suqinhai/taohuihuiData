@@ -72,26 +72,22 @@ exports.modify = async function(req, res, next) {
     var mainPicLen = data.mainPic.length;
     var detailsPicLen = data.detailsPic.length;
 
-    var main = []
-    async.mapLimit(data.mainPic, 1, function(url, callback) {
-        var tt = await util.uploadOss('https:' + url)
-        main.push()
-    }, function(err, result) {
-        casper.exit()
-    });
-
-
-    console.log(main)
     
-    // for (var i = 0; i < mainPicLen; i++) {
-    //     var img = await util.uploadOss('https:' + data.mainPic[i])
-    //     console.log(img.url)
-    // }
-
-    // for (var i = 0; i < detailsPicLen; i++) {
-    //    var img = await util.uploadOss('https:' + data.detailsPicLen[i]);
-    //    console.log(img.url)
-    // }
+    for (var i = 0; i < mainPicLen; i++) {
+        if ( data.mainPic[i].indexOf('https:') == -1 ){
+             data.mainPic[i] = 'https:' + data.mainPic[i]
+        }
+        var img = await util.uploadOss(data.mainPic[i])
+        console.log(img.url)
+    }
+     
+    for (var i = 0; i < detailsPicLen; i++) {
+       if ( data.detailsPic[i].indexOf('https:') == -1 ){
+             data.detailsPic[i] = 'https:' + data.detailsPic[i]
+       }
+       var img = await util.uploadOss(data.detailsPic[i]);
+       console.log(img.url)
+    }
 
 
     // var data = {

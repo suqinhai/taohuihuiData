@@ -96,10 +96,12 @@ exports.downloadImg = function(imgUrl) {
                 var savePath = './public/uploads/' + img_filename;
                 var writeStream = fs.createWriteStream(savePath);
                 this.pipe(writeStream)
-                resolve({
-                    'pathImg': savePath,
-                    'fileType': typeImg.replace('image/', '.')
-                });
+                this.on('end', function() {
+                    resolve({
+                        'pathImg': savePath,
+                        'fileType': typeImg.replace('image/', '.')
+                    });
+                })
             })
     })
 }
