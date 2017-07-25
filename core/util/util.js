@@ -2,6 +2,8 @@
 const request = require('request');
 const crypto = require('crypto');
 const fs = require('fs');
+const co = require('co');
+const oss = require('../../config/oss.config.js');
 /**
  * 将时间转成日期格式  'yyyy-MM-dd HH:mm:ss'
  * @Author   suqinhai
@@ -12,7 +14,7 @@ const fs = require('fs');
  * @return {[String]}   格式化的时间字符串 
  */
 exports.dataFormat = function(t, format) {
-	format ? '' : format = 'yyyy-MM-dd HH:mm:ss';
+    format ? '' : format = 'yyyy-MM-dd HH:mm:ss';
     var tf = function(i) { return (i < 10 ? '0' : '') + i };
     return format.replace(/yyyy|MM|dd|HH|mm|ss/g, function(a) {
         switch (a) {
@@ -49,7 +51,7 @@ exports.dataFormat = function(t, format) {
 
 exports.md5 = function(param) {
     //crypto模块功能是加密并生成各种散列,此处所示为MD5方式加密
-    var md5 = crypto.createHash('md5');   
+    var md5 = crypto.createHash('md5');
     return md5.update(param).digest('hex');
 }
 
@@ -64,13 +66,13 @@ exports.md5File = function(file) {
     var md5File
     var hash = crypto.createHash('md5');
 
-    file.on('data', function(chunk){
+    file.on('data', function(chunk) {
         hash.update(chunk)
     });
 
     return new Promise(function(resolve, reject) {
-        file.on('end', function () {
-           resolve(hash.digest('hex').toUpperCase());
+        file.on('end', function() {
+            resolve(hash.digest('hex').toUpperCase());
         });
     })
 }
@@ -85,14 +87,38 @@ exports.md5File = function(file) {
  */
 exports.downloadImg = function(imgUrl) {
     //采用request模块，向服务器发起一次请求，获取图片资源
-    var img_filename = new Date().getTime() + '.jpg';
-    var savePath = './public/uploads/'+ img_filename;
-    request(imgUrl).pipe(fs.createWriteStream(savePath));
-    return savePath;
+    return new Promise(function(resolve, reject) {
+        request
+            .get(imgUrl)
+            .on('response', function(response) {
+                var typeImg = response.headers['content-type'] // 'image/png'
+                var img_filename = new Date().getTime() + typeImg.replace('image/', '.');
+                var savePath = './public/uploads/' + img_filename;
+                var writeStream = fs.createWriteStream(savePath);
+                this.pipe(writeStream)
+                resolve({
+                    'pathImg': savePath,
+                    'fileType': typeImg.replace('image/', '.')
+                });
+            })
+    })
 }
 
 
+exports.uploadOss = async function(imgUrl) {
 
+    var img = await exports.downloadImg(imgUrl)
+    var stream = fs.createReadStream(img.pathImg);
+    var md5FileName = await exports.md5File(stream); // 获取文件加密md5
 
-
-
+    return new Promise(function(resolve, reject) {
+        co(function*() {
+            var stream = fs.createReadStream(img.pathImg); // 读取文件    
+            var result = yield oss.putStream(md5FileName + img.fileType, stream); // 上次OSS
+            fs.unlinkSync(img.pathImg); // 删除文件 
+            resolve(result)
+        }).catch(function(err) {
+            console.log(err)
+        });
+    })
+}

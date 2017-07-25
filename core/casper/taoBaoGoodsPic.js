@@ -41,7 +41,7 @@ function core() {
     casper.then(function() {
         //获取浏览器当前url
         var data = this.evaluate(function() {
-            return __utils__.sendAJAX('http://192.168.1.100:3001/taohuihui/goods/get', 'get', false);
+            return __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/goods/get', 'get', false);
         })
 
         var urls = [];
@@ -49,13 +49,13 @@ function core() {
         var len = data.list.length;
 
         for (var i = 0; i < len; i++) {
-            urls.push({'url':data.list[i].url,'_id':data.list[i]._id});
+            urls.push({ 'url': data.list[i].url, '_id': data.list[i]._id });
         }
 
         async.mapLimit(urls, 1, function(url, callback) {
             page(url, callback)
         }, function(err, result) {
-             casper.exit()
+            casper.exit()
         });
     });
 }
@@ -63,39 +63,44 @@ function core() {
 function page(url, callback) {
     casper.open(url.url);
     casper.then(function() {
-		  this.scrollTo(0, 2000);
-		  console.log(url.url)
-		  this.wait(100, function() {
-		    this.capture('google.png')
-		    this.waitForSelector('.ke-post img', function() {
-		      var data = this.evaluate(function(url) {
-		        var data = {
-		          '_id':url._id,
-		          'mainPic': [],
-		          'detailsPic': [],
-		        }
-		        jQuery('#J_UlThumb li img').each(function() {
-		          data.mainPic.push(jQuery(this).attr('src').replace('_60x60q90.jpg', '_430x430q90.jpg'))
-		        });
+        this.scrollTo(0, 2000);
+        this.wait(500, function() {
 
-		        jQuery('.ke-post img').each(function() {
-		          var src = jQuery(this).attr('src')
-		          if (src.indexOf('T1BYd_XwFcXXb9RTPq-90-90.png') > -1 && jQuery(this).attr('data-ks-lazyload').indexOf('spaceball.gif') == -1) {
-		            data.detailsPic.push(jQuery(this).attr('data-ks-lazyload'))
-		          } else if (src.indexOf('T1BYd_XwFcXXb9RTPq-90-90.png') == -1 && src.indexOf('spaceball.gif') == -1) {
-		            data.detailsPic.push(src)
-		          } else {
+            this.waitForSelector('.ke-post img', function() {
+                var data = this.evaluate(function(url) {
 
-		          }
-		        })
+                    var data = {
+                        '_id': url._id,
+                        'mainPic': [],
+                        'detailsPic': [],
+                    }
 
-		        return data
-		      },url);
+                    jQuery('#J_UlThumb li img').each(function() {
+                        var src = jQuery(this).attr('src');
+                        var index = src.indexOf('.jpg_') + 5;
+                        data.mainPic.push(src.substr(0, index) + '430x430.jpg')
+                    });
 
-		      console.log(JSON.stringify(data))
-		      callback(null,data)
-		    });
-		  })
+                    jQuery('.ke-post img').each(function() {
+                        var lazyload = jQuery(this).attr('data-ks-lazyload')
+                        var src = jQuery(this).attr('src')
+
+                        if (lazyload) {
+                            data.detailsPic.push(jQuery(this).attr('data-ks-lazyload'))
+                        } else if (src.indexOf('T1BYd_XwFcXXb9RTPq-90-90.png') == -1 && src.indexOf('spaceball.gif') == -1) {
+                            data.detailsPic.push(src)
+                        }
+                    })
+
+                    __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/goods/modify', 'post', {'data':JSON.stringify(data)}, false);
+
+                    return data
+                }, url);
+
+                // console.log(JSON.stringify(data))
+                callback(null, data)
+            });
+        })
     })
 }
 

@@ -1,12 +1,18 @@
 'use strict';
 
-var path = require("path");
 var spawn = require("child_process").spawn;
 var goodsModel = require('../models/goods.model.js');
+var util = require('../util/util.js')
+var async = require('async');
+
+exports.init = async function(req, res, next) {
 
 
-exports.init = function(req, res, next) {
-    starCasper();
+    // var imgUrl = 'https://img.alicdn.com/bao/uploaded/i3/TB19BPHSXXXXXX_XVXXXXXXXXXX_!!0-item_pic.jpg_430x430q90.jpg'
+
+    // var ossImg = await util.uploadOss(imgUrl)
+    // console.log(ossImg.url)
+
     res.send('11');
 }
 
@@ -47,7 +53,7 @@ exports.get = async function(req, res, next) {
 // 添加
 exports.add = function(req, res, next) {
     var param = req.body;
-    
+
     goodsModel.create(data, function(err, results) {
         err ? res.send(err) : '';
         res.status(200).json({
@@ -58,25 +64,58 @@ exports.add = function(req, res, next) {
 }
 
 // 添加
-exports.modify = function(req, res, next) {
+exports.modify = async function(req, res, next) {
     var param = req.body;
     var _id = param._id;
-    console.log(param);
-    return false
-    goodsModel.update({ '_id': _id }, data, function(err, results) {
-        err ? res.send(err) : '';
-        res.status(200).json({
-            'code': '1',
-            'data': results
-        });
-    })
+
+    var data = JSON.parse(param.data);
+    var mainPicLen = data.mainPic.length;
+    var detailsPicLen = data.detailsPic.length;
+
+    var main = []
+    async.mapLimit(data.mainPic, 1, function(url, callback) {
+        var tt = await util.uploadOss('https:' + url)
+        main.push()
+    }, function(err, result) {
+        casper.exit()
+    });
+
+
+    console.log(main)
+    
+    // for (var i = 0; i < mainPicLen; i++) {
+    //     var img = await util.uploadOss('https:' + data.mainPic[i])
+    //     console.log(img.url)
+    // }
+
+    // for (var i = 0; i < detailsPicLen; i++) {
+    //    var img = await util.uploadOss('https:' + data.detailsPicLen[i]);
+    //    console.log(img.url)
+    // }
+
+
+    // var data = {
+    //     'mainPic': data.mainPic,
+    //     'detailsPicLen':data.detailsPicLen
+    // }
+
+    // console.log(data)
+
+
+    // goodsModel.update({ '_id': _id }, data, function(err, results) {
+    //     err ? res.send(err) : '';
+    //     res.status(200).json({
+    //         'code': '1',
+    //         'data': results
+    //     });
+    // })
 }
 
 // 启动casperjs线程
 function starCasper(fn) {
-    
 
-    var child = spawn('casperjs', ['./core/casper/taoBaoGoods.js','--web-security=no']);
+
+    var child = spawn('casperjs', ['./core/casper/taoBaoGoods.js', '--web-security=no']);
 
     child.stdout.on('data', function(data) {
         console.log('标准输出: ' + data);
@@ -106,9 +145,9 @@ function starCasper(fn) {
 
 // 启动casperjs线程
 function starCasper2(fn) {
-    
 
-    var child = spawn('casperjs', ['./core/casper/taoBaoGoodsPic.js','--web-security=no']);
+
+    var child = spawn('casperjs', ['./core/casper/taoBaoGoodsPic.js', '--web-security=no']);
 
     child.stdout.on('data', function(data) {
         console.log('标准输出: ' + data);
