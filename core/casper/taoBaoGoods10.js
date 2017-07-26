@@ -63,7 +63,7 @@ casper.then(function() {
             }
 
             var code = document.getElementById('J_QRCodeImg').getElementsByTagName('img')[0].getAttribute('src')
-            __utils__.sendAJAX('http://172.16.1.77:3001/taohuihui/public/sendEmail', 'post', {
+            __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/public/sendEmail', 'post', {
                 'text': '淘宝联盟登录二维码',
                 'url': 'http:' + code,
                 'title': '淘宝联盟登录二维码',
@@ -80,14 +80,14 @@ casper.then(function() {
 
     //判断是否登录  条件：登录跳转index.htm
     this.waitForUrl(/index\.htm$/, function() {
-
+        this.options.waitTimeout = 5000;
         this.echo('登录成功!');
 
         var datas = [];
-        var category = ['女装','男装']; // 要爬取的类目
-        var maxPage = 2;  // 最大页面
+         var category = ['女装','男装','鞋包','珠宝配饰','运动户外','美妆','母婴','食品','内衣','数码','家装','家具用品','家电','汽车','生活用品','图书音像','其他']; // 要爬取的类目
+        var maxPage = 25;  // 最大页面
         var minPage = 1;  // 从第几页开始
-        var perPageSize = 2; // 一次返回最大多少条数据
+        var perPageSize = 40; // 一次返回最大多少条数据
         
         minPage < 1 ? (minPage = 1) : '';
         for (var c in category ){
@@ -104,6 +104,7 @@ casper.then(function() {
              var category = data.category;
              var toPage = data.toPage;
              var perPageSize = data.perPageSize;
+             console.log(new Date().getTime())
              pageCb(category,toPage,perPageSize,callback)
         }, function(err, result) {
              casper.exit();
@@ -118,7 +119,6 @@ casper.run()
 
 function pageCb(category,toPage,perPageSize,callback){
 
-    casper.options.waitTimeout = 5000;
     casper.options.onWaitTimeout = function() {
         pageCb(category,toPage,callback)
     };
@@ -128,27 +128,65 @@ function pageCb(category,toPage,perPageSize,callback){
         var data = JSON.parse(searchData);
         var items = data.data.pageList
         return items
-    }, category, toPage,perPageSize)
+    }, category, toPage,perPageSize);
+
+
+    var newSelfAdzone2Data = casper.evaluate(function(items) {
+        var newSelfAdzone2Url = 'http://pub.alimama.com/common/adzone/newSelfAdzone2.json?tag=29&itemId=' + items[0]['auctionId'] + '&t=' + new Date().getTime()
+        var newSelfAdzone2Data = JSON.parse(__utils__.sendAJAX(newSelfAdzone2Url, 'get', false));
+        return newSelfAdzone2Data
+    },items);
+
 
     async.mapLimit(items, 1, function(item, callback2) {
-        itemCb(casper,item,callback2)
+        itemCb(casper,item,newSelfAdzone2Data,callback2)
     }, function(err, result) {
         //发送数据服务端
-        casper.evaluate(function(result) {
-            __utils__.sendAJAX('http://172.16.1.77:3001/taohuihui/goods/add', 'post', {
-                'data': JSON.stringify(result),
+        var data = [];
+        for (var r in result){
+            var d = {};
+            d['auctionId'] = result[r] ? result[r].auctionId : '' // 商品ID
+            d['auctionUrl'] = result[r] ? result[r].auctionUrl : '' // 跳转链接:
+            d['biz30day'] = result[r] ? result[r].biz30day : '' // 30天销售量
+            d['clickUrl'] = result[r] ? result[r].clickUrl  : ''// 商品长链接
+            d['couponAmount'] = result[r] ? result[r].couponAmount  : ''//优惠券金额
+            d['couponEffectiveEndTime'] = result[r] ? result[r].couponEffectiveEndTime  : '' //优惠券结束时间
+            d['couponEffectiveStartTime'] = result[r] ? result[r].couponEffectiveStartTime  : '' //优惠券开始时间
+            d['couponInfo'] = result[r] ? result[r].couponInfo  : '' //优惠价信息
+            d['couponLeftCount'] = result[r] ? result[r].couponLeftCount : '' // 优惠券剩余张数
+            d['couponLink'] = result[r] ? result[r].couponLink : '' //优惠券长链接
+            d['couponLinkTaoToken'] = result[r] ? result[r].couponLinkTaoToken  : ''// 优惠券淘口令
+            d['couponShortLinkUrl'] = result[r] ? result[r].couponShortLinkUrl  : ''// 优惠券短链接
+            d['couponStartFee'] = result[r] ? result[r].couponStartFee  : ''  // 优惠券开始费用
+            d['couponTotalCount'] = result[r] ? result[r].couponTotalCount   : ''// 总优惠券数
+            d['shopTitle'] = result[r] ? result[r].shopTitle  : ''// 卖家店铺
+            d['pictUrl'] = result[r] ? result[r].pictUrl  : ''// 商品图片
+            d['taoToken'] = result[r] ? result[r].taoToken  : ''// 商品淘口令
+            d['title'] = result[r] ? result[r].title  : ''// 商品标题
+            d['tkCommFee'] = result[r] ? result[r].tkCommFee  : ''// 商品佣金
+            d['tkRate'] = result[r] ? result[r].tkRate  : ''// 商品佣金百分比
+            d['zkPrice'] = result[r] ? result[r].zkPrice  : ''// 商品价格
+            d['userType'] = result[r] ? result[r].userType  : 0// 1 天猫 0 淘宝
+            d['category'] = category  || ''// 属性
+            data.push(d);
+        }
+
+        casper.evaluate(function(data) {
+            __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/goods/add', 'post', {
+                'data': JSON.stringify(data),
             }, false);
-        },result)
+        },data)
         
-        callback(null);
+        casper.wait(5000,function(){
+             callback(null,result);
+        })
+       
     });
 }
 
-function itemCb(casper,item,callback2) {
+function itemCb(casper,item,newSelfAdzone2Data,callback2) {
 
-    var itemData = casper.evaluate(function(item) {
-        var newSelfAdzone2Url = 'http://pub.alimama.com/common/adzone/newSelfAdzone2.json?tag=29&itemId=' + item['auctionId']
-        var newSelfAdzone2Data = JSON.parse(__utils__.sendAJAX(newSelfAdzone2Url, 'get', false));
+    var itemData = casper.evaluate(function(item,newSelfAdzone2Data) {
 
         var auctionid = item['auctionId'];
         var adzoneid = newSelfAdzone2Data['data']['otherAdzones'][0]['sub'][0]['id'];
@@ -160,10 +198,12 @@ function itemCb(casper,item,callback2) {
         for (var taoCode in getAuctionCode.data) {
             item[taoCode] = getAuctionCode.data[taoCode]
         }
-        return item
-    }, item);
 
-    casper.wait(1000,function(){
+        return item
+    }, item,newSelfAdzone2Data);
+
+
+    casper.wait(2000,function(){
         callback2(null,itemData)
     })  
 }

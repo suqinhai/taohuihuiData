@@ -6,47 +6,27 @@ const util = require('../util/util.js');
 const mongoose = require('mongoose');
 
 const goodsSchema = new mongoose.Schema({
-    picUrl: {
+    auctionId: {
+        type: Number,
+        required: false
+    },
+    auctionUrl: {
         type: String,
         required: false
     },
-    title: {
+    biz30day: {
+        type: Number,
+        required: false
+    },
+    clickUrl: {
         type: String,
         required: false
     },
-    coupon: {
-        type: String,
+    couponAmount: {
+        type: Number,
         required: false
     },
-    couponStartFee: {
-        type: String,
-        required: false
-    },
-    couponNumber: {
-        type: String,
-        required: false
-    },
-    commissionPercent: {
-        type: String,
-        required: false
-    },
-    commission: {
-        type: String,
-        required: false
-    },
-    shopTitle: {
-        type: String,
-        required: false
-    },
-    sales: {
-        type: String,
-        required: false
-    },
-    reservePrice: {
-        type: String,
-        required: false
-    },
-    zkPrice: {
+    couponEffectiveEndTime: {
         type: String,
         required: false
     },
@@ -54,32 +34,68 @@ const goodsSchema = new mongoose.Schema({
         type: String,
         required: false
     },
-    couponEffectiveEndTime: {
+    couponInfo: {
         type: String,
         required: false
     },
-    url: {
+    couponLeftCount: {
+        type: Number,
+        required: false
+    },
+    couponLink: {
         type: String,
         required: false
     },
-    couponUrl: {
+    couponLinkTaoToken: {
         type: String,
         required: false
     },
-    couponCode: {
+    couponShortLinkUrl: {
         type: String,
         required: false
     },
-    goodsCode: {
+    couponStartFee: {
+        type: Number,
+        required: false
+    },
+    couponTotalCount: {
+        type: Number,
+        required: false
+    },
+    shopTitle: {
         type: String,
         required: false
     },
-    channel: {
+    pictUrl: {
         type: String,
+        required: false
+    },
+    taoToken: {
+        type: String,
+        required: false
+    },
+    title: {
+        type: String,
+        required: false
+    },
+    tkCommFee: {
+        type: Number,
+        required: false
+    },
+    tkRate: {
+        type: Number,
+        required: false
+    },
+    zkPrice: {
+        type: Number,
+        required: false
+    },
+    userType: {
+        type: Number,
         required: false
     },
     category: {
-        type: String,
+        type: Array,
         required: false
     },
     mainPic: {

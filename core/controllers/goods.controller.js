@@ -53,16 +53,15 @@ exports.get = async function(req, res, next) {
 // 添加
 exports.add = function(req, res, next) {
     var param = req.body;
-
-     console.log(param);
-    res.send('11');
-    // goodsModel.create(data, function(err, results) {
-    //     err ? res.send(err) : '';
-    //     res.status(200).json({
-    //         'code': '1',
-    //         'data': results
-    //     });
-    // })
+    var data = param.data;
+    console.log(data)
+    goodsModel.create(JSON.parse(data), function(err, results) {
+        err ? res.send(err) : '';
+        res.status(200).json({
+            'code': '1',
+            'data': results
+        });
+    })
 }
 
 // 添加
