@@ -87,7 +87,7 @@ casper.then(function() {
         var category = ['女装','男装']; // 要爬取的类目
         var maxPage = 2;  // 最大页面
         var minPage = 1;  // 从第几页开始
-        var perPageSize = 100; // 一次返回最大多少条数据
+        var perPageSize = 2; // 一次返回最大多少条数据
         
         minPage < 1 ? (minPage = 1) : '';
         for (var c in category ){
@@ -103,6 +103,7 @@ casper.then(function() {
         async.mapLimit(datas, 1, function(data, callback) {
              var category = data.category;
              var toPage = data.toPage;
+             var perPageSize = data.perPageSize;
              pageCb(category,toPage,perPageSize,callback)
         }, function(err, result) {
              casper.exit();
@@ -133,12 +134,12 @@ function pageCb(category,toPage,perPageSize,callback){
         itemCb(casper,item,callback2)
     }, function(err, result) {
         //发送数据服务端
-        casper.evaluate(function() {
+        casper.evaluate(function(result) {
             __utils__.sendAJAX('http://172.16.1.77:3001/taohuihui/goods/add', 'post', {
                 'data': JSON.stringify(result),
             }, false);
-        })
-        console.log(JSON.stringify(result));
+        },result)
+        
         callback(null);
     });
 }

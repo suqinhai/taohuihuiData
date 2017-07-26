@@ -65,7 +65,6 @@ function page(url, callback) {
     casper.then(function() {
         this.scrollTo(0, 2000);
         this.wait(500, function() {
-
             this.waitForSelector('.ke-post img', function() {
                 var data = this.evaluate(function(url) {
 
@@ -92,7 +91,7 @@ function page(url, callback) {
                         }
                     })
 
-                    __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/goods/modify', 'post', {'data':JSON.stringify(data)}, false);
+                    __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/goods/modify', 'post', { 'data': JSON.stringify(data) }, false);
 
                     return data
                 }, url);

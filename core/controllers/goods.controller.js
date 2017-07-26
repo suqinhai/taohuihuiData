@@ -54,7 +54,7 @@ exports.get = async function(req, res, next) {
 exports.add = function(req, res, next) {
     var param = req.body;
 
-    // console.log(param);
+     console.log(param);
     res.send('11');
     // goodsModel.create(data, function(err, results) {
     //     err ? res.send(err) : '';
