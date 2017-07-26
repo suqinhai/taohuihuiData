@@ -57,7 +57,6 @@ casper.then(function() {
 
     this.waitForSelector('#J_QRCodeImg', function() {
         //获取登录二维码
-        console.log('11')
         var loginCode = this.evaluate(function() {
 
             if ( !document.getElementById('J_QRCodeImg').getElementsByTagName('img')[0] ){

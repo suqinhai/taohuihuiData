@@ -56,9 +56,15 @@ casper.then(function() {
     this.waitForSelector('.qrcode-img img', function() {
         //获取登录二维码
         var loginCode = this.evaluate(function() {
+
+            if (!document.getElementById('J_QRCodeImg').getElementsByTagName('img')[0]) {
+                document.getElementById('J_Quick2Static').click();
+                document.getElementById('J_Static2Quick').click();
+            }
+
             var code = document.getElementById('J_QRCodeImg').getElementsByTagName('img')[0].getAttribute('src')
-            __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/public/sendEmail', 'post', {
-                'text': '家电淘宝联盟登录二维码',
+            __utils__.sendAJAX('http://172.16.1.77:3001/taohuihui/public/sendEmail', 'post', {
+                'text': '淘宝联盟登录二维码',
                 'url': 'http:' + code,
                 'title': '淘宝联盟登录二维码',
                 'toEmail': '467456744@qq.com'
@@ -66,208 +72,97 @@ casper.then(function() {
             return code
         })
 
-        this.each(loginCode)
+        console.log(loginCode)
 
     });
+
 
 
     //判断是否登录  条件：登录跳转index.htm
     this.waitForUrl(/index\.htm$/, function() {
-        this.echo('登录成功!')
-        //获取一页商品数
 
-        var urls = [];
+        this.echo('登录成功!');
 
-        for (var i = 1; i <= 99; i++) {
-            urls.push('http://pub.alimama.com/promo/search/index.htm?q=家电&_t='+ new Date().getTime() +'&toPage=' + i + '&perPageSize=40&dpyhq=1')
+        var datas = [];
+        var category = ['女装','男装']; // 要爬取的类目
+        var maxPage = 2;  // 最大页面
+        var minPage = 1;  // 从第几页开始
+        var perPageSize = 100; // 一次返回最大多少条数据
+        
+        minPage < 1 ? (minPage = 1) : '';
+        for (var c in category ){
+            for (var page = minPage; page < maxPage; page++ ){
+                datas.push({
+                    'category':category[c],
+                    'toPage':page,
+                    'perPageSize':perPageSize,
+                })
+            }
         }
 
-        //打开多少个页面
-        async.mapLimit(urls, 1, function(url, callback) {
-
-            page(url, callback)
+        async.mapLimit(datas, 1, function(data, callback) {
+             var category = data.category;
+             var toPage = data.toPage;
+             pageCb(category,toPage,perPageSize,callback)
         }, function(err, result) {
-            casper.exit()
+             casper.exit();
         });
-
-
+    
     });
 
 });
 
-// 要抓取的页面
-function page(url, callback) {
-    casper.options.waitTimeout = 10000;
-    casper.options.onWaitTimeout = function() {
-        page(url, callback)
-    };
-    casper.open(url);
-    casper.then(function() {
-        this.waitForSelector('.box-btn-left', function() {
-
-            //获取一页商品数
-            var size = this.evaluate(function(num) {
-                return $('.box-btn-left').size()
-            })
-
-            var _this = this;
-            var numArr = [];
-
-            for (var i = 0; i < size; i++) {
-                numArr.push(i);
-            }
-
-            async.mapLimit(numArr, 1, function(num, callback2) {
-                console.log(num)
-                core(_this, num, callback2)
-            }, function(err, result) {
-                _this.evaluate(function(result) {
-                    return __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/goods/add', 'post', {
-                        'data': JSON.stringify(result),
-                    }, false);
-                }, result)
-
-
-                _this.echo(JSON.stringify({
-                    'count': count++
-                })) // 获取页面全部商品数据
-            });
-
-        });
-
-    })
-
-    casper.then(function() {
-
-        callback()
-    })
-}
-
-
 casper.run()
 
-function core(casper, num, callback2) {
-    var params = {};
-    var _this = casper;
-    //点击页面立即推广
-    _this.options.waitTimeout = 10000;
-    _this.options.onWaitTimeout = function() {
-        console.log('超时:　' + 　num)
-        core(casper, num, callback2);
-    }
-    async.series([
-        function(cb) {
-            _this.wait(5000, function() {
-                var data = _this.evaluate(function(num) {
-                    function getQueryString(key) {
-                        var reg = new RegExp("(^|&)" + key + "=([^&]*)(&|$)");
-                        var result = window.location.search.substr(1).match(reg);
-                        return result ? decodeURIComponent(result[2]) : null;
-                    }
-                    $('a.box-btn-left').eq(num).trigger('click');
 
-                    var picUrl = $('.search-box-img img').eq(num).attr('src');
-                    var title = $('a.content-title').eq(num).attr('title');
-                    var coupon = $('.money').eq(num).find('span').text();
-                    var couponNumber = $('.content-line .valign-m span').eq(num).text();
-                    var commissionPercent = $('.commission-field .number').eq(num).text();
-                    var commission = $('.commission-tip:hidden').eq(num).text().replace('￥', '');
-                    var shopTitle = $('.shop-title > span > a > span').eq(num).text();
-                    var sales = $('.content-line .fr .color-d span').eq(num).text();
-                    var remainDays = $('.time-left span').eq(num).text();
-                    var channel = $('.box-shop-info').eq(0).find('.tag-tmall').attr('title') ? '天猫' : '淘宝';
-                    var category = getQueryString('q')
+function pageCb(category,toPage,perPageSize,callback){
 
-                    var data = {
-                        'picUrl': picUrl.toString() || '', //商品图片
-                        'title': title.toString() || '', // 标题
-                        'coupon': coupon.toString() || '', // 优惠券价格
-                        'couponNumber': couponNumber.toString() || '', // 优惠券数量
-                        'commissionPercent': commissionPercent.toString() || '', //佣金百分比
-                        'commission': commission.toString() || '', //佣金价格
-                        'shopTitle': shopTitle.toString() || '', //卖家店铺
-                        'sales': sales.toString() || '', //销量
-                        'channel': channel.toString() || '',
-                        'remainDays': remainDays.toString() || '', //剩余天数
-                        'channel': channel.toString() || '', //渠道
-                        'category': category.toString() || ''
-                    }
+    casper.options.waitTimeout = 5000;
+    casper.options.onWaitTimeout = function() {
+        pageCb(category,toPage,callback)
+    };
 
-                    return data
+    var items = casper.evaluate(function(category, toPage,perPageSize) {
+        var searchData = __utils__.sendAJAX('http://pub.alimama.com/items/search.json?q=' + encodeURI(category) + '&toPage=' + toPage + '&perPageSize='+ perPageSize +'&dpyhq=1&shopTag=yxjh,dpyhq&t=' + new Date().getTime(), 'get', false);
+        var data = JSON.parse(searchData);
+        var items = data.data.pageList
+        return items
+    }, category, toPage,perPageSize)
 
-                }, num)
+    async.mapLimit(items, 1, function(item, callback2) {
+        itemCb(casper,item,callback2)
+    }, function(err, result) {
+        //发送数据服务端
+        casper.evaluate(function() {
+            __utils__.sendAJAX('http://172.16.1.77:3001/taohuihui/goods/add', 'post', {
+                'data': JSON.stringify(result),
+            }, false);
+        })
+        console.log(JSON.stringify(result));
+        callback(null);
+    });
+}
 
-                for (var d in data) {
-                    params[d] = data[d]
-                }
+function itemCb(casper,item,callback2) {
 
-                // _this.wait(5000, function() {
-                _this.waitForSelector('.dropdown-toggle', function() {
-                    cb(null, params)
-                })
-                // })
-            })
-        },
-        function(cb) {
-            //点击设置推广位确认键
-            _this.wait(5000, function() {
+    var itemData = casper.evaluate(function(item) {
+        var newSelfAdzone2Url = 'http://pub.alimama.com/common/adzone/newSelfAdzone2.json?tag=29&itemId=' + item['auctionId']
+        var newSelfAdzone2Data = JSON.parse(__utils__.sendAJAX(newSelfAdzone2Url, 'get', false));
 
-                _this.evaluate(function() {
-                    $('.dialog-ft button.btn-brand').eq(0).trigger('click');
-                    return $('.dialog-ft button.btn-brand').length
-                })
+        var auctionid = item['auctionId'];
+        var adzoneid = newSelfAdzone2Data['data']['otherAdzones'][0]['sub'][0]['id'];
+        var siteid = newSelfAdzone2Data['data']['otherAdzones'][0]['id'];
 
-                _this.wait(500, function() {
-                    _this.waitForSelector('.clipboard-wrap', function() {
-                        //商品链接&领券链接
+        var getAuctionCodeUrl = 'http://pub.alimama.com/common/code/getAuctionCode.json?auctionid=' + auctionid + '&adzoneid=' + adzoneid + '&siteid=' + siteid + '&scenes=1';
+        var getAuctionCode = JSON.parse(__utils__.sendAJAX(getAuctionCodeUrl, 'get', false));
 
-                        var data = _this.evaluate(function() {
-                            var url = $('#clipboard-target-1').val();
-                            var couponUrl = $('#clipboard-target-2').val();
-                            var data = {
-                                'url': url.toString() || '', //商品链接
-                                'couponUrl': couponUrl.toString() || '', //领券链接
-                            }
-                            //点击淘口令
-                            $('.tab-nav li:eq(3)').trigger('click');
-                            return data
-                        })
-
-                        for (var d in data) {
-                            params[d] = data[d]
-                        }
-
-                        _this.wait(5000, function() {
-
-                            _this.waitForSelector('.clipboard-wrap', function() {
-                                var data = _this.evaluate(function() {
-                                    var goodsCode = $('#clipboard-target-1').val();
-                                    var couponCode = $('#clipboard-target-2').val();
-                                    var data = {
-                                        'couponCode': couponCode.toString() || '', //领券口令
-                                        'goodsCode': goodsCode.toString() || '', //商品口令
-                                    }
-                                    return data
-                                });
-
-
-                                for (var d in data) {
-                                    params[d] = data[d]
-                                }
-
-                                cb(null, params)
-                            })
-
-
-                        })
-                    })
-
-                })
-
-            })
+        for (var taoCode in getAuctionCode.data) {
+            item[taoCode] = getAuctionCode.data[taoCode]
         }
-    ], function(err, results) {
-        console.log(JSON.stringify(results))
-        callback2(null, results[0])
-    })
+        return item
+    }, item);
+
+    casper.wait(1000,function(){
+        callback2(null,itemData)
+    })  
 }
