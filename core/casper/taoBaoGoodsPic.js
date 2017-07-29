@@ -40,29 +40,42 @@ function core() {
 
     casper.then(function() {
         //获取浏览器当前url
-        var data = this.evaluate(function() {
-            return __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/goods/get', 'get', false);
-        })
+        t()
+        function t(){
+            var data = casper.evaluate(function() {
+                return __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/goods/get', 'get', false);
+            })
 
-        var urls = [];
-        var data = JSON.parse(data)
-        var len = data.list.length;
+            var urls = [];
+            var data = JSON.parse(data)
+            var len = data.list.length;
 
-        for (var i = 0; i < len; i++) {
-            urls.push({ 'url': data.list[i].url, '_id': data.list[i]._id });
+            if ( len == 0 ) {
+                casper.exit()
+            }
+
+            for (var i = 0; i < len; i++) {
+                urls.push({ 'url': data.list[i].auctionUrl, '_id': data.list[i]._id });
+            }
+
+            async.mapLimit(urls, 1, function(url, callback) {
+                page(url, callback)
+            }, function(err, result) {
+                t()
+            }); 
         }
-
-        async.mapLimit(urls, 1, function(url, callback) {
-            page(url, callback)
-        }, function(err, result) {
-            casper.exit()
-        });
+        
     });
 }
 
 function page(url, callback) {
+    casper.options.waitTimeout = 10000;
+    casper.options.onWaitTimeout = function() {
+        page(url, callback)
+    };
     casper.open(url.url);
     casper.then(function() {
+
         this.scrollTo(0, 2000);
         this.wait(500, function() {
             this.waitForSelector('.ke-post img', function() {

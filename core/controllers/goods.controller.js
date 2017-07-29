@@ -25,7 +25,10 @@ exports.get = async function(req, res, next) {
     var param = req.query || req.params
     var page = parseInt((param.page ? param.page : 1));
     var pageSize = parseInt((param.pageSize ? param.pageSize : 30));
-    var data = {};
+    var data = {
+        'detailsPic':[],
+        'mainPic':[]
+    };
     param.name ? data.name = new RegExp(param.name) : '';
 
     var count = await goodsModel.count({})
@@ -54,7 +57,7 @@ exports.get = async function(req, res, next) {
 exports.add = function(req, res, next) {
     var param = req.body;
     var data = param.data;
-    console.log(data)
+    
     goodsModel.create(JSON.parse(data), function(err, results) {
         err ? res.send(err) : '';
         res.status(200).json({
@@ -67,45 +70,23 @@ exports.add = function(req, res, next) {
 // 添加
 exports.modify = async function(req, res, next) {
     var param = req.body;
-    var _id = param._id;
-
     var data = JSON.parse(param.data);
-    var mainPicLen = data.mainPic.length;
-    var detailsPicLen = data.detailsPic.length;
+    var _id = data._id;
 
-    
-    for (var i = 0; i < mainPicLen; i++) {
-        if ( data.mainPic[i].indexOf('https:') == -1 ){
-             data.mainPic[i] = 'https:' + data.mainPic[i]
-        }
-        var img = await util.uploadOss(data.mainPic[i])
-        console.log(img.url)
-    }
-     
-    for (var i = 0; i < detailsPicLen; i++) {
-       if ( data.detailsPic[i].indexOf('https:') == -1 ){
-             data.detailsPic[i] = 'https:' + data.detailsPic[i]
-       }
-       var img = await util.uploadOss(data.detailsPic[i]);
-       console.log(img.url)
+    console.log(data.mainPic)
+    console.log(data.detailsPic)
+    var data = {
+        'mainPic': data.mainPic,
+        'detailsPic':data.detailsPic
     }
 
-
-    // var data = {
-    //     'mainPic': data.mainPic,
-    //     'detailsPicLen':data.detailsPicLen
-    // }
-
-    // console.log(data)
-
-
-    // goodsModel.update({ '_id': _id }, data, function(err, results) {
-    //     err ? res.send(err) : '';
-    //     res.status(200).json({
-    //         'code': '1',
-    //         'data': results
-    //     });
-    // })
+    goodsModel.update({ '_id': _id }, data, function(err, results) {
+        err ? res.send(err) : '';
+        res.status(200).json({
+            'code': '1',
+            'data': results
+        });
+    })
 }
 
 // 启动casperjs线程
