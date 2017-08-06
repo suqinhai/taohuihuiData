@@ -38,7 +38,9 @@ exports.get = async function(req, res, next) {
             return count
         })
 
-    goodsModel.find(data)
+    var goodId = await goodsDetailsModel.find({}).select('goodId')
+
+    goodsModel.find({'_id':{$nin:goodId}})
         .skip((page - 1) * pageSize)
         .limit(pageSize)
         .lean()
