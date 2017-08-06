@@ -97,6 +97,11 @@ const routers = {
     '/goods/modify': {
         'post': 'goods.modify'
     },
+    '/goods/addDetails': {
+        'post': 'goods.addDetails'
+    },
+
+    
 
 
 

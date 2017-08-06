@@ -2,6 +2,7 @@
 
 var spawn = require("child_process").spawn;
 var goodsModel = require('../models/goods.model.js');
+var goodsDetailsModel = require('../models/goodsDetails.model.js');
 var util = require('../util/util.js')
 var async = require('async');
 
@@ -56,6 +57,7 @@ exports.get = async function(req, res, next) {
 // 添加
 exports.add = function(req, res, next) {
     var param = req.body;
+
     var data = param.data;
     
     goodsModel.create(JSON.parse(data), function(err, results) {
@@ -66,6 +68,22 @@ exports.add = function(req, res, next) {
         });
     })
 }
+
+
+// 添加
+exports.addDetails = function(req, res, next) {
+    var param = req.body;
+    
+    var data = param.data;
+    goodsDetailsModel.create(JSON.parse(data), function(err, results) {
+        err ? res.send(err) : '';
+        res.status(200).json({
+            'code': '1',
+            'data': results
+        });
+    })
+}
+
 
 // 添加
 exports.modify = async function(req, res, next) {

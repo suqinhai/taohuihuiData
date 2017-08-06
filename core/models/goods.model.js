@@ -10,6 +10,10 @@ const goodsSchema = new mongoose.Schema({
         type: Number,
         required: false
     },
+    reservePrice: {
+        type: Number,
+        required: false
+    },
     auctionUrl: {
         type: String,
         required: false

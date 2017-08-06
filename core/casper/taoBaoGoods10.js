@@ -147,6 +147,7 @@ function pageCb(category,toPage,perPageSize,callback){
             var d = {};
             d['auctionId'] = result[r] ? result[r].auctionId : '' // 商品ID
             d['auctionUrl'] = result[r] ? result[r].auctionUrl : '' // 跳转链接:
+            d['reservePrice'] = result[r] ? result[r].reservePrice : '' // 原价
             d['biz30day'] = result[r] ? result[r].biz30day : '' // 30天销售量
             d['clickUrl'] = result[r] ? result[r].clickUrl  : ''// 商品长链接
             d['couponAmount'] = result[r] ? result[r].couponAmount  : ''//优惠券金额
