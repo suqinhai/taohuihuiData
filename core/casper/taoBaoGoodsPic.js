@@ -41,7 +41,8 @@ function core() {
     casper.then(function() {
         //获取浏览器当前url
         t()
-        function t(){
+
+        function t() {
             var data = casper.evaluate(function() {
                 return __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/goods/get', 'get', false);
             })
@@ -50,7 +51,7 @@ function core() {
             var data = JSON.parse(data)
             var len = data.list.length;
 
-            if ( len == 0 ) {
+            if (len == 0) {
                 casper.exit()
             }
 
@@ -62,9 +63,9 @@ function core() {
                 page(url, callback)
             }, function(err, result) {
                 t()
-            }); 
+            });
         }
-        
+
     });
 }
 
@@ -73,145 +74,164 @@ function page(url, callback) {
     casper.options.waitTimeout = 10000;
     casper.options.onWaitTimeout = function() {
         page(url, callback);
-
         console.log('出错回调')
     };
-    casper.open(url.url);
+    casper.start(url.url, function() {
+        this.clearMemoryCache(); // 清除缓存并调用newPage()方法替换当前页面对象。
+    });
     casper.then(function() {
-
-        this.scrollTo(0, 3000);
         this.wait(1000, function() {
-            this.capture('google.png')
-            this.waitForSelector('.ke-post img', function() {
-                var data = this.evaluate(function(url) {
+            this.scrollTo(0, 3000);
 
-                    var data = {
-                        'goodId': url._id,
-                        'mainPic': [],
-                        'detailsPic': [],
-                    }
+            var actionUrl = this.evaluate(function() {
+                return window.location.href
+            })
 
-                    var li = document.getElementById('J_UlThumb').getElementsByTagName('li');
-                    var len = li.length;
+            if (actionUrl.indexOf('noitem.htm') > 0) {
+                callback(null)
+                this.capture('google.png')
+                return false;
+            } else if (actionUrl.indexOf('noitem.htm') == -1) {
+                this.wait(1000, function() {
+                    this.waitForSelector('.ke-post img', function() {
+                        var data = this.evaluate(function(url) {
 
-                    for (var i = 0; i < len; i++){
-                        var src = li[i].getElementsByTagName('img')[0].getAttribute('src');
-                        var index = src.indexOf('.jpg_') + 5;
-                        data.mainPic.push(src.substr(0, index) + '430x430.jpg')
-                    }
-
-                    if ( window.location.href.indexOf('tmall') == -1 ){
-                        //淘宝详情页抓取
-                        var kePost = document.getElementById('J_DivItemDesc');
-                        var img  = kePost.getElementsByTagName('img');
-                        var len = kePost.getElementsByTagName('img').length;
-
-                        for (var i = 0; i < len; i++){
-                            var lazyload = img[i].getAttribute('data-ks-lazyload');
-                            var src = img[i].getAttribute('src');
-                            if (lazyload) {
-                                data.detailsPic.push(lazyload)
-                            }else if (src){
-                                data.detailsPic.push(src)
+                            var data = {
+                                'goodId': url._id,
+                                'mainPic': [],
+                                'detailsPic': [],
                             }
-                        }
 
-                        var  brand = ''; // 品牌直销
+                            var li = document.getElementById('J_UlThumb').getElementsByTagName('li');
+                            var len = li.length;
 
-                        var popular = '' // 天猫收藏人气
-                        var J_CollectCount = document.getElementsByClassName('J_FavCount')[0].innerText;
-                        var number = /\d+/g;
-                        var popular = parseInt(J_CollectCount.match(number)[0]);
-
-                        var sellerPromise = [] // 服务承诺
-                        var serPromise = document.getElementsByClassName('tb-extra')[0].getElementsByTagName('dl')[0];
-                        var a = serPromise.getElementsByTagName('a');
-                        var len = serPromise.getElementsByTagName('a').length;
-                        for (var i = 0; i < len; i++){
-                            sellerPromise.push(a[i].innerText)
-                        }
-
-                        var payMethod =  [] // 支付方式
-                        var credit = document.getElementsByClassName('tb-extra')[0].getElementsByTagName('dl')[1];
-                        var a = credit.getElementsByTagName('a');
-                        var len = credit.getElementsByTagName('a').length;
-                        for (var i = 0; i < len; i++){
-                            payMethod.push(a[i].innerText)
-                        }
-
-                        var goldSellers = false  //金牌卖家
-
-                        var promoType = '' // 商品广告
-                        if ( document.getElementById('J_PromoType') ){ 
-                             var promoType = document.getElementById('J_PromoType').innerText
-                        }
-
-                    }else{
-                        //天猫详情页抓取
-                        var kePost = document.getElementsByClassName('ke-post')[0];
-                        var img = kePost.getElementsByTagName('img');
-                        var len = kePost.getElementsByTagName('img').length;
-
-                        for (var i = 0; i < len; i++){
-                            var lazyload = img[i].getAttribute('data-ks-lazyload');
-                            var src = img[i].getAttribute('src');
-                            if (lazyload) {
-                                data.detailsPic.push(lazyload)
-                            }else if (src){
-                                data.detailsPic.push(src)
+                            for (var i = 0; i < len; i++) {
+                                var src = li[i].getElementsByTagName('img')[0].getAttribute('src');
+                                var index = src.indexOf('.jpg_') + 5;
+                                data.mainPic.push(src.substr(0, index) + '430x430.jpg')
                             }
-                        }
-                        var  brand = ''; // 品牌直销
-                        if (　document.getElementsByClassName('flagship-icon-font')[0]　){
-                            var  brand = document.getElementsByClassName('flagship-icon-font')[0].innerText;
-                        }
 
-                        var popular = '' // 天猫收藏人气
-                        var J_CollectCount = document.getElementById('J_CollectCount').innerText;
-                        var number = /\d+/g;
-                        var popular = parseInt(J_CollectCount.match(number)[0]);
+                            if (window.location.href.indexOf('tmall') == -1) {
+                                //淘宝详情页抓取
+                                var kePost = document.getElementById('J_DivItemDesc');
+                                var img = kePost.getElementsByTagName('img');
+                                var len = kePost.getElementsByTagName('img').length;
 
-                        var sellerPromise = [] // 服务承诺
-                        var serPromise = document.getElementsByClassName('tb-serPromise')[0];
-                        var li = serPromise.getElementsByTagName('li');
-                        var len = serPromise.getElementsByTagName('li').length;
-                        for (var i = 0; i < len; i++){
-                            sellerPromise.push(li[i].getElementsByTagName('a')[0].innerText)
-                        }
+                                for (var i = 0; i < len; i++) {
+                                    var width = img[i].getAttribute('width');
+                                    if ((width && parseInt(width) > 450) || img[i].getAttribute('align')) {
+                                        var lazyload = img[i].getAttribute('data-ks-lazyload');
+                                        var src = img[i].getAttribute('src');
+                                        if (lazyload) {
+                                            data.detailsPic.push(lazyload)
+                                        } else if (src) {
+                                            data.detailsPic.push(src)
+                                        }
+                                    }
+                                }
 
-                        var payMethod =  [] // 支付方式
-                        var credit = document.getElementsByClassName('pay-credit')[0];
-                        var a = serPromise.getElementsByTagName('a');
-                        var len = serPromise.getElementsByTagName('a').length;
-                        for (var i = 0; i < len; i++){
-                            payMethod.push(a[i].innerText)
-                        }
+                                var brand = ''; // 品牌直销
 
-                        var goldSellers = ''  //金牌卖家
-                        if (　document.getElementsByClassName('jinpai-v').length　== 1 ){ 
-                            goldSellers = true
-                        }
+                                var popular = '' // 天猫收藏人气
+                                var J_CollectCount = document.getElementsByClassName('J_FavCount')[0].innerText;
+                                var number = /\d+/g;
+                                var popular = parseInt(J_CollectCount.match(number)[0]);
 
-                        var promoType = '' // 商品广告
-                        if ( document.getElementsByClassName('tm-promo-type').length ){ 
-                             var promoType = document.getElementsByClassName('tm-promo-type')[0].innerText
-                        }
-                    }
+                                var sellerPromise = [] // 服务承诺
+                                var serPromise = document.getElementsByClassName('tb-extra')[0].getElementsByTagName('dl')[0];
+                                var a = serPromise.getElementsByTagName('a');
+                                var len = serPromise.getElementsByTagName('a').length;
+                                for (var i = 0; i < len; i++) {
+                                    sellerPromise.push(a[i].innerText)
+                                }
 
-                    data.brand = brand;
-                    data.popular = popular;
-                    data.sellerPromise = sellerPromise;
-                    data.payMethod = payMethod;
-                    data.promoType = promoType;
-                    data.goldSellers = goldSellers;
+                                var payMethod = [] // 支付方式
+                                var credit = document.getElementsByClassName('tb-extra')[0].getElementsByTagName('dl')[1];
+                                var a = credit.getElementsByTagName('a');
+                                var len = credit.getElementsByTagName('a').length;
+                                for (var i = 0; i < len; i++) {
+                                    payMethod.push(a[i].innerText)
+                                }
 
-                    __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/goods/addDetails', 'post', { 'data': JSON.stringify(data) }, false);
-                    return data
-                }, url);
+                                var goldSellers = false //金牌卖家
 
-                //console.log(JSON.stringify(data))
-                callback(null, data)
-            });
+                                var promoType = '' // 商品广告
+                                if (document.getElementById('J_PromoType')) {
+                                    var promoType = document.getElementById('J_PromoType').innerText
+                                }
+
+                            } else {
+                                //天猫详情页抓取
+                                var kePost = document.getElementsByClassName('ke-post')[0];
+                                var img = kePost.getElementsByTagName('img');
+                                var len = kePost.getElementsByTagName('img').length;
+
+                                for (var i = 0; i < len; i++) {
+                                    var align = img[i].getAttribute('align');
+                                    if (align || align == 'absmiddle') {
+                                        var lazyload = img[i].getAttribute('data-ks-lazyload');
+                                        var src = img[i].getAttribute('src');
+                                        if (lazyload) {
+                                            data.detailsPic.push(lazyload)
+                                        } else if (src) {
+                                            data.detailsPic.push(src)
+                                        }
+                                    }
+
+                                }
+                                var brand = ''; // 品牌直销
+                                if (　document.getElementsByClassName('flagship-icon-font')[0]　) {
+                                    var brand = document.getElementsByClassName('flagship-icon-font')[0].innerText;
+                                }
+
+                                var popular = '' // 天猫收藏人气
+                                var J_CollectCount = document.getElementById('J_CollectCount').innerText;
+                                var number = /\d+/g;
+                                var popular = parseInt(J_CollectCount.match(number)[0]);
+
+                                var sellerPromise = [] // 服务承诺
+                                var serPromise = document.getElementsByClassName('tb-serPromise')[0];
+                                var li = serPromise.getElementsByTagName('li');
+                                var len = serPromise.getElementsByTagName('li').length;
+                                for (var i = 0; i < len; i++) {
+                                    sellerPromise.push(li[i].getElementsByTagName('a')[0].innerText)
+                                }
+
+                                var payMethod = [] // 支付方式
+                                var credit = document.getElementsByClassName('pay-credit')[0];
+                                var a = serPromise.getElementsByTagName('a');
+                                var len = serPromise.getElementsByTagName('a').length;
+                                for (var i = 0; i < len; i++) {
+                                    payMethod.push(a[i].innerText)
+                                }
+
+                                var goldSellers = '' //金牌卖家
+                                if (　document.getElementsByClassName('jinpai-v').length　 == 1) {
+                                    goldSellers = true
+                                }
+
+                                var promoType = '' // 商品广告
+                                if (document.getElementsByClassName('tm-promo-type').length) {
+                                    var promoType = document.getElementsByClassName('tm-promo-type')[0].innerText
+                                }
+                            }
+
+                            data.brand = brand;
+                            data.popular = popular;
+                            data.sellerPromise = sellerPromise;
+                            data.payMethod = payMethod;
+                            data.promoType = promoType;
+                            data.goldSellers = goldSellers;
+
+                            __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/goods/addDetails', 'post', { 'data': JSON.stringify(data) }, false);
+                            return data
+                        }, url);
+
+                        //console.log(JSON.stringify(data))
+                        callback(null, data)
+                    });
+                })
+            }
         })
     })
 }

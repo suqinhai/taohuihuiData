@@ -159,6 +159,7 @@ function starCasper2(fn) {
                 console.log("casperjs.js正常退出");
                 break;
             case 1:
+                starCasper2();
                 console.log("casperjs.js访问失败");
                 break;
             case 2:
