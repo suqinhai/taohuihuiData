@@ -44,7 +44,7 @@ function core() {
 
         function t() {
             var data = casper.evaluate(function() {
-                return __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/goods/get', 'get', false);
+                return __utils__.sendAJAX('http://172.16.1.84:3001/taohuihui/goods/get', 'get', false);
             })
 
             var urls = [];
@@ -223,7 +223,7 @@ function page(url, callback) {
                             data.promoType = promoType;
                             data.goldSellers = goldSellers;
 
-                            __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/goods/addDetails', 'post', { 'data': JSON.stringify(data) }, false);
+                            __utils__.sendAJAX('http://172.16.1.84:3001/taohuihui/goods/addDetails', 'post', { 'data': JSON.stringify(data) }, false);
                             return data
                         }, url);
 

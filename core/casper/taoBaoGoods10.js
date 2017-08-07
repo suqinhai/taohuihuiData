@@ -63,7 +63,7 @@ casper.then(function() {
             }
 
             var code = document.getElementById('J_QRCodeImg').getElementsByTagName('img')[0].getAttribute('src')
-            __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/public/sendEmail', 'post', {
+            __utils__.sendAJAX('http://172.16.1.84:3001/taohuihui/public/sendEmail', 'post', {
                 'text': '淘宝联盟登录二维码',
                 'url': 'http:' + code,
                 'title': '淘宝联盟登录二维码',
@@ -83,15 +83,20 @@ casper.then(function() {
         this.options.waitTimeout = 5000;
         this.echo('登录成功!');
 
+
         var datas = [];
-         var category = ['女装','男装','鞋包','珠宝配饰','运动户外','美妆','母婴','食品','内衣','数码','家装','家具用品','家电','汽车','生活用品','图书音像','其他']; // 要爬取的类目
-        var maxPage = 25;  // 最大页面
+        var category = this.evaluate(function() {
+            var data = __utils__.sendAJAX('http://172.16.1.84:3001/taohuihui/goods/verifyId', 'post', {data:_ids}, false);
+            return data
+        })
+        
+        var maxPage = 2;  // 最大页面
         var minPage = 1;  // 从第几页开始
-        var perPageSize = 40; // 一次返回最大多少条数据
+        var perPageSize = 1; // 一次返回最大多少条数据
         
         minPage < 1 ? (minPage = 1) : '';
         for (var c in category ){
-            for (var page = minPage; page < maxPage; page++ ){
+            for (var page = minPage - 1; page < maxPage; page++ ){
                 datas.push({
                     'category':category[c],
                     'toPage':page,
@@ -100,7 +105,19 @@ casper.then(function() {
             }
         }
 
-        async.mapLimit(datas, 1, function(data, callback) {
+        var urlArr = this.evaluate(function(datas) {
+                var len = datas.length;
+                var _ids = []
+                for (var i = 0; i < len; i++ ){
+                    _ids.push(datas[i]._id)
+                }
+                return __utils__.sendAJAX('http://172.16.1.84:3001/taohuihui/goods/verifyId', 'post', {data:_ids}, false);
+        },datas);
+
+        async.mapLimit(urlArr, 1, function(data, callback) {
+
+
+
              var category = data.category;
              var toPage = data.toPage;
              var perPageSize = data.perPageSize;
@@ -173,10 +190,12 @@ function pageCb(category,toPage,perPageSize,callback){
         }
 
         casper.evaluate(function(data) {
-            __utils__.sendAJAX('http://192.168.1.101:3001/taohuihui/goods/add', 'post', {
+            __utils__.sendAJAX('http://172.16.1.84:3001/taohuihui/goods/add', 'post', {
                 'data': JSON.stringify(data),
             }, false);
         },data)
+
+        
         
         casper.wait(5000,function(){
              callback(null,result);

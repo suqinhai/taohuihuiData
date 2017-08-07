@@ -102,14 +102,6 @@ const goodsSchema = new mongoose.Schema({
         type: Array,
         required: false
     },
-    mainPic: {
-        type: Array,
-        required: false
-    },
-    detailsPic: {
-        type: Array,
-        required: false
-    },
     createTime:{
         type: String,
         default:util.dataFormat(new Date()),

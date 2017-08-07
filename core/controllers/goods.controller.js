@@ -1,5 +1,5 @@
 'use strict';
-
+var _ = require('lodash');
 var spawn = require("child_process").spawn;
 var goodsModel = require('../models/goods.model.js');
 var goodsDetailsModel = require('../models/goodsDetails.model.js');
@@ -13,7 +13,7 @@ exports.init = async function(req, res, next) {
 
     // var ossImg = await util.uploadOss(imgUrl)
     // console.log(ossImg.url)
-
+    starCasper();
     res.send('11');
 }
 
@@ -56,12 +56,34 @@ exports.get = async function(req, res, next) {
         })
 }
 
+// 校验是否有这个商品
+exports.verifyId = async function(req, res, next) {
+    var param = req.body;
+    var _ids = param.data;
+
+    goodsModel.find({_id:{$in:_ids}}, function(err, data) {
+        err ? res.send(err) : '';
+        var len = data.length;
+        var _idsRes = [] 
+        for (var i = 0; i < len; i++){
+           _idsRes.push(data[i]._id) 
+        };
+
+        var data = _.difference(_ids, _idsRes); // 比较出差异的_id
+        res.status(200).json({
+            'code': '1',
+            'list': data,
+        });
+    })
+}
+
+
+
 // 添加
 exports.add = function(req, res, next) {
     var param = req.body;
 
     var data = param.data;
-    
     goodsModel.create(JSON.parse(data), function(err, results) {
         err ? res.send(err) : '';
         res.status(200).json({
@@ -113,7 +135,7 @@ exports.modify = async function(req, res, next) {
 function starCasper(fn) {
 
 
-    var child = spawn('casperjs', ['./core/casper/taoBaoGoods.js', '--web-security=no']);
+    var child = spawn('casperjs', ['./core/casper/taoBaoGoods10.js', '--web-security=no']);
 
     child.stdout.on('data', function(data) {
         console.log('标准输出: ' + data);
@@ -165,9 +187,11 @@ function starCasper2(fn) {
                 console.log("casperjs.js访问失败");
                 break;
             case 2:
+                starCasper2();
                 console.log("casperjs.js超时退出");
                 break;
             default:
+                starCasper2();
                 console.log("casperjs.js异常退出");
                 break;
         };

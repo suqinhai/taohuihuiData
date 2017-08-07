@@ -67,6 +67,23 @@ const routers = {
         'post': 'poster.del'
     },
 
+     //第三方分类管理接口
+    '/classify/getThirdPropertySelect': {
+        'get': 'classify.getThirdPropertySelect'
+    }, 
+    '/classify/getThirdProperty': {
+        'get': 'classify.getThirdProperty'
+    },
+    '/classify/addThirdProperty': {
+        'post': 'classify.addThirdProperty'
+    },
+    '/classify/modifyThirdProperty': {
+        'post': 'classify.modifyThirdProperty'
+    },
+    '/classify/delThirdProperty': {
+        'post': 'classify.delThirdProperty'
+    },
+
 
     // 首页底部浮动菜单
     '/bottomMenu/get': {
