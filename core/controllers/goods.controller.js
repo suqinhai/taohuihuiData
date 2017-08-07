@@ -59,31 +59,21 @@ exports.get = async function(req, res, next) {
 // 校验是否有这个商品
 exports.verifyId = async function(req, res, next) {
     var param = req.body;
-    var datas = JSON.parse(param.data);
-
-    var len = datas.length;
-    var auctionIds = []
-    for (var i = 0; i < len; i++ ){
-        auctionIds.push(datas[i].auctionId)
-    }
-
-    goodsModel.find({auctionId:{$in:auctionIds}}, function(err, data) {
+    var auctionIds = JSON.parse(param.data)
+    goodsModel.find({'auctionId':{$in:auctionIds}}, function(err, data) {
         err ? res.send(err) : '';
 
         var results = [];
         var dataLen = data.length;
-        for (var i = 0; i < len; i++ ){
-            for ( var j = 0 ;  j < len; j++){
-                if (  datas[i].auctionId  == data[j].auctionId ){
-                    results.push(data[i])
-                }
-            }
-           
+        for (var i = 0; i < dataLen; i++ ){
+            results.push(data[i].auctionId)
         }
         
+        var data = _.difference(auctionIds, results);
+
         res.status(200).json({
             'code': '1',
-            'list': results,
+            'list': data,
         });
     })
 }

@@ -14,6 +14,10 @@ const goodsSchema = new mongoose.Schema({
         type: String,
         required: false
     },
+    reservePrice:{
+        type: Number,
+        required: false
+    },
     biz30day: {
         type: Number,
         required: false
@@ -95,14 +99,6 @@ const goodsSchema = new mongoose.Schema({
         required: false
     },
     category: {
-        type: Array,
-        required: false
-    },
-    mainPic: {
-        type: Array,
-        required: false
-    },
-    detailsPic: {
         type: Array,
         required: false
     },

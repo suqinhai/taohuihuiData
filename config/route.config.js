@@ -117,6 +117,9 @@ const routers = {
     '/goods/addDetails': {
         'post': 'goods.addDetails'
     },
+    '/goods/verifyId': {
+        'post': 'goods.verifyId'
+    },
 
     
 
