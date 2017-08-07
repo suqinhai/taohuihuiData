@@ -59,20 +59,31 @@ exports.get = async function(req, res, next) {
 // 校验是否有这个商品
 exports.verifyId = async function(req, res, next) {
     var param = req.body;
-    var _ids = param.data;
+    var datas = JSON.parse(param.data);
 
-    goodsModel.find({_id:{$in:_ids}}, function(err, data) {
+    var len = datas.length;
+    var auctionIds = []
+    for (var i = 0; i < len; i++ ){
+        auctionIds.push(datas[i].auctionId)
+    }
+
+    goodsModel.find({auctionId:{$in:auctionIds}}, function(err, data) {
         err ? res.send(err) : '';
-        var len = data.length;
-        var _idsRes = [] 
-        for (var i = 0; i < len; i++){
-           _idsRes.push(data[i]._id) 
-        };
 
-        var data = _.difference(_ids, _idsRes); // 比较出差异的_id
+        var results = [];
+        var dataLen = data.length;
+        for (var i = 0; i < len; i++ ){
+            for ( var j = 0 ;  j < len; j++){
+                if (  datas[i].auctionId  == data[j].auctionId ){
+                    results.push(data[i])
+                }
+            }
+           
+        }
+        
         res.status(200).json({
             'code': '1',
-            'list': data,
+            'list': results,
         });
     })
 }

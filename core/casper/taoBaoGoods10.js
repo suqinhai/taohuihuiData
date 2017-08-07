@@ -115,9 +115,6 @@ casper.then(function() {
         },datas);
 
         async.mapLimit(urlArr, 1, function(data, callback) {
-
-
-
              var category = data.category;
              var toPage = data.toPage;
              var perPageSize = data.perPageSize;
@@ -154,6 +151,10 @@ function pageCb(category,toPage,perPageSize,callback){
         return newSelfAdzone2Data
     },items);
 
+
+    var items = this.evaluate(function(items) {
+            return __utils__.sendAJAX('http://172.16.1.84:3001/taohuihui/goods/verifyId', 'post', {data:JSON.stringify(items)}, false);
+    },items);
 
     async.mapLimit(items, 1, function(item, callback2) {
         itemCb(casper,item,newSelfAdzone2Data,callback2)

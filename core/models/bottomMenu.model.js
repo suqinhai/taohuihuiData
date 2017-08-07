@@ -10,6 +10,11 @@ const bottomMenuSchema = new mongoose.Schema({
 		type: String,
 		required: true
 	},
+	'actionType':{
+		type: String,
+		required: true,
+		enum:['index','classify','circle','account'] //  index 首页  classify 分类   circle 朋友圈   account 我的账户
+	},
 	'sort':{
 		type: Number,
 		required: true

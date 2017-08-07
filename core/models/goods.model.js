@@ -10,10 +10,6 @@ const goodsSchema = new mongoose.Schema({
         type: Number,
         required: false
     },
-    reservePrice: {
-        type: Number,
-        required: false
-    },
     auctionUrl: {
         type: String,
         required: false
@@ -100,6 +96,24 @@ const goodsSchema = new mongoose.Schema({
     },
     category: {
         type: Array,
+        required: false
+    },
+    mainPic: {
+        type: Array,
+        required: false
+    },
+    detailsPic: {
+        type: Array,
+        required: false
+    },
+    sort: {
+        type: Number,
+        default:0,
+        required: false
+    },
+    publish: {
+        type: Number,
+        default:0,
         required: false
     },
     createTime:{

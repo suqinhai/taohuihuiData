@@ -1,7 +1,7 @@
 'use strict';
 const mongoose = require('mongoose');
 
-const navSchema = new mongoose.Schema({
+const thirdPropertySchema = new mongoose.Schema({
 	'name':{
 		type: String,
 		required: true
@@ -23,8 +23,8 @@ const navSchema = new mongoose.Schema({
 		required: false,
 	},
 }, {
-    collection: 'tb_nav',
+    collection: 'tb_thirdProperty',
     id: false
 });
 
-module.exports = mongoose.model('Nav', navSchema);
+module.exports = mongoose.model('ThirdProperty', thirdPropertySchema);
