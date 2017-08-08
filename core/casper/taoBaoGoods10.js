@@ -52,7 +52,7 @@ casper.then(function() {
     var url = this.evaluate(function() {
         return window.location.href
     })
-
+     //phantom.setProxy('123.59.51.130','8080')
     this.waitForSelector('.qrcode-img img', function() {
         //获取登录二维码
         var loginCode = this.evaluate(function() {
