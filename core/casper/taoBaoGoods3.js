@@ -76,6 +76,8 @@ casper.then(function() {
         this.echo('登录成功!')
         //获取一页商品数
 
+        
+       
         var urls = [];
 
         for (var i = 1; i <= 99; i++) {

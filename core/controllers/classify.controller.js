@@ -415,12 +415,12 @@ exports.getThirdProperty = async function(req, res, next) {
 
 
 
-    if (req.validationErrors()) {
-        return res.status(400).json({
-            'code': '0',
-            'data': req.validationErrors()
-        });
-    }
+    // if (req.validationErrors()) {
+    //     return res.status(400).json({
+    //         'code': '0',
+    //         'data': req.validationErrors()
+    //     });
+    // }
 
     var data = {};
 

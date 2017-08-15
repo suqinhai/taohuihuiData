@@ -23,13 +23,11 @@ exports.init2 = function(req, res, next) {
 }
 
 exports.get = async function(req, res, next) {
+    var data = {};
     var param = req.query || req.params
     var page = parseInt((param.page ? param.page : 1));
     var pageSize = parseInt((param.pageSize ? param.pageSize : 30));
-    var data = {
-        'detailsPic':[],
-        'mainPic':[]
-    };
+
     param.name ? data.name = new RegExp(param.name) : '';
 
     var count = await goodsModel.count({})
@@ -38,9 +36,7 @@ exports.get = async function(req, res, next) {
             return count
         })
 
-    var goodId = await goodsDetailsModel.find({}).select('goodId')
-
-    goodsModel.find({'_id':{$nin:goodId}})
+    goodsModel.find({'mainPic':[]})
         .skip((page - 1) * pageSize)
         .limit(pageSize)
         .lean()
@@ -56,27 +52,7 @@ exports.get = async function(req, res, next) {
         })
 }
 
-// 校验是否有这个商品
-exports.verifyId = async function(req, res, next) {
-    var param = req.body;
-    var auctionIds = JSON.parse(param.data)
-    goodsModel.find({'auctionId':{$in:auctionIds}}, function(err, data) {
-        err ? res.send(err) : '';
 
-        var results = [];
-        var dataLen = data.length;
-        for (var i = 0; i < dataLen; i++ ){
-            results.push(data[i].auctionId)
-        }
-        
-        var data = _.difference(auctionIds, results);
-
-        res.status(200).json({
-            'code': '1',
-            'list': data,
-        });
-    })
-}
 
 
 
@@ -96,11 +72,23 @@ exports.add = function(req, res, next) {
 
 
 // 添加
-exports.addDetails = function(req, res, next) {
+exports.modify = async function(req, res, next) {
     var param = req.body;
-    
-    var data = param.data;
-    goodsDetailsModel.create(JSON.parse(data), function(err, results) {
+    var data = JSON.parse(param.data);
+    var _id = data.goodId;
+
+    var data = {
+        'brand':data.brand,
+        'popular':data.popular,
+        'payMethod':data.payMethod,
+        'promoType': data.promoType,
+        'goldSellers': data.goldSellers,
+        'mainPic': data.mainPic,
+        'detailsPic':data.detailsPic,
+        'sellerPromise':data.sellerPromise
+    }
+
+    goodsModel.update({ '_id': _id }, data, function(err, results) {
         err ? res.send(err) : '';
         res.status(200).json({
             'code': '1',
@@ -110,24 +98,24 @@ exports.addDetails = function(req, res, next) {
 }
 
 
-// 添加
-exports.modify = async function(req, res, next) {
+// 校验是否有这个商品
+exports.verifyId = async function(req, res, next) {
     var param = req.body;
-    var data = JSON.parse(param.data);
-    var _id = data._id;
-
-    console.log(data.mainPic)
-    console.log(data.detailsPic)
-    var data = {
-        'mainPic': data.mainPic,
-        'detailsPic':data.detailsPic
-    }
-
-    goodsModel.update({ '_id': _id }, data, function(err, results) {
+    var auctionIds = JSON.parse(param.data)
+    goodsModel.find({'auctionId':{$in:auctionIds}}, function(err, data) {
         err ? res.send(err) : '';
+
+        var results = [];
+        var dataLen = data.length;
+        for (var i = 0; i < dataLen; i++ ){
+            results.push(data[i].auctionId)
+        }
+        
+        var data = _.difference(auctionIds, results);
+
         res.status(200).json({
             'code': '1',
-            'data': results
+            'list': data,
         });
     })
 }
